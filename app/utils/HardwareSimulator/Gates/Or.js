@@ -6,6 +6,6 @@ import Node from '../Node';
 
 export default class Or extends Node {
   compute() {
-    this.outputs[0] = (this.inputs(0) | this.inputs(1)) & 1;
+    this.setOutput(0, this.inputs(0) | this.inputs(1));
   }
 }

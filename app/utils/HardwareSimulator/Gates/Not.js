@@ -7,6 +7,6 @@ import Node from '../Node';
 
 export default class Not extends Node {
   compute() {
-    this.outputs[0] = ~this.inputs(0) & 1;
+    this.setOutput(0, ~this.inputs(0));
   }
 }

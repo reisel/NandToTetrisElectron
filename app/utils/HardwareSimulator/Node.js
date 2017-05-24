@@ -1,18 +1,32 @@
 /**
  * Created by daniel on 5/21/17.
  */
-// @flow
 import Wire from './Wire';
 
 export default class Node {
-  inputWires: Array<Wire>;
-  outputWires: Array<Array<Wire>>;
-  isValid: boolean;
-  outputs: Array<number>;
-  config = {
-    inputs: 1,
-    outputs: 1,
+  inputWires;
+  outputWires;
+  isValid;
+  outputs;
+  masks = {
+    outputs: [],
+    inputs: [],
   };
+  config = {
+    pins: {
+      inputs: [1],
+      outputs: [1],
+    }
+  };
+  calcMasks() {
+    Object.keys(this.config.pins)
+      .forEach(type => {
+        this.masks[type] = this.config.pins[type].map(buffer => (2 ** buffer) - 1);
+      });
+  }
+  setOutput(idx, value) {
+    this.outputs[idx] = value & this.masks.outputs[idx];
+  }
   connectInput(idx: number, wire: Wire): void {
     this.inputWires[idx] = wire;
     wire.outputs.push(this);
@@ -47,5 +61,6 @@ export default class Node {
     this.inputWires = [];
     this.outputWires = [];
     this.outputs = [];
+    this.calcMasks();
   }
 }
