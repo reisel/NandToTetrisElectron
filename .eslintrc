@@ -10,6 +10,10 @@
     "node": true
   },
   "rules": {
+    "no-multi-spaces": "off",
+    "prefer-rest-params": "off",
+    "default-case": "off",
+    "class-methods-use-this": "off",
     "no-bitwise": "off",
     "no-return-assign": "off",
     "no-plusplus": "off",

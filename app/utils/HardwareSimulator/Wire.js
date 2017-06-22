@@ -17,8 +17,10 @@ export default class Wire {
     this.outputs.forEach(node => node.invalidate());
   }
   setValue(value: number): void {
-    this.value = value;
-    this.invalidate();
+    if (this.value !== (value & 1)) {
+      this.value = value & 1;
+      this.invalidate();
+    }
   }
   constructor() {
     this.outputs = [];

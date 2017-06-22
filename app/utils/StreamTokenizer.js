@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const NEED_CHAR = Number.MAX_VALUE;
 const SKIP_LF = Number.MAX_VALUE - 1;
 const CT_WHITESPACE = 1;
@@ -7,8 +9,8 @@ const CT_QUOTE = 8;
 const CT_COMMENT = 16;
 
 export default class Tokenizer {
-  constructor(input) {
-    this.input = input;
+  constructor(fileName) {
+    this.input = fs.readFileSync(fileName);
     this.currentPos = 0;
     this.buf = new Array(256);
     this.buf.fill(0);

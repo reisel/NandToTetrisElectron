@@ -91,19 +91,15 @@ export default class HDLTokenizer {
   /**
    * Constructs a new HDLTokenizer with the given file name.
    */
-  constructor(fileName, input) {
-    this.initizalizeInput(input);
+  constructor(fileName) {
+    this.initizalizeInput(fileName);
     this.fileName = fileName;
-  }
-  static fromFile(file) {
-    return loadFile(file)
-      .then(input => Promise.resolve(new HDLTokenizer(file.name, input)));
   }
 /**
  * Initializes the tokenizer input
  */
-  initizalizeInput(input) {
-    this.parser = new StreamTokenizer(input);
+  initizalizeInput(fileName) {
+    this.parser = new StreamTokenizer(fileName);
     this.parser.parseNumbers();
     this.parser.slashSlashComments(true);
     this.parser.slashStarComments(true);

@@ -4,7 +4,7 @@
  */
 import Node from '../Node';
 
-export default class Input extends Node {
+export default class Output extends Node {
   value: boolean;
   compute() {
     this.value = this.inputs(0);

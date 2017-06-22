@@ -1,4 +1,3 @@
-// @flow
 /**
  * Created by daniel on 4/17/17.
  */
@@ -74,4 +73,25 @@ export const testSingleInput = (testNode: Node, test: number) => {
   };
   twoInputTests[test]();
   return output.value;
+};
+export const testGate = (testNode, config) => {
+  const { config: { pins: { inputs, outputs } } } = testNode;
+  const inputObjects  = inputs.map(() => new Input());
+  const inputWires  = inputs.map(() => new Wire());
+  const outputObjects = outputs.map(() => new Output());
+  const outputWires = outputs.map(() => new Wire());
+  outputWires.forEach((wire, idx) => {
+    outputObjects[idx].connectInput(0, wire);
+    testNode.connectOutput(idx, wire);
+  });
+  inputWires.forEach((wire, idx) => {
+    inputObjects[idx].connectOutput(0, wire);
+    testNode.connectInput(idx, wire);
+  });
+  inputObjects.forEach((input, idx) => {
+    input.setValue(config.inputValues[idx]);
+  });
+  const gateManager = new GateManager(inputObjects);
+  gateManager.compute();
+  return outputObjects.map(output => output.value);
 };

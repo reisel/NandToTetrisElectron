@@ -16,6 +16,6 @@ export default class Input extends Node {
   }
   setValue(value: number): void {
     this.value = value;
-    this.update();
+    this.isValid = false;
   }
 }

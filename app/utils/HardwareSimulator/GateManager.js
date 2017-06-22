@@ -15,7 +15,9 @@ export default class GateManager {
     while (nodes.length) {
       while (nodes.length) {
         const node = nodes.pop();
-        wires.push(...node.update());
+        if (!node.isValid) {
+          wires.push(...node.update());
+        }
       }
       while (wires.length) {
         const wire = wires.pop();

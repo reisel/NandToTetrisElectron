@@ -7,6 +7,6 @@ import Node from '../Node';
 
 export default class Nand extends Node {
   compute() {
-    this.setOutput(0, ~(this.inputs(0) & this.inputs(1)));
+        this.setOutput(0, ~(this.inputs(0) & this.inputs(1)));
   }
 }
