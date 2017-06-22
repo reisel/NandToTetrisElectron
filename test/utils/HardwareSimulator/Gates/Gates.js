@@ -2,9 +2,9 @@
  * Created by daniel on 4/17/17.
  */
 import { Input, Output } from '../../../../app/utils/HardwareSimulator/Gates/index';
-import Wire from '../../../../app/utils/HardwareSimulator/Wire';
-import Node from '../../../../app/utils/HardwareSimulator/Node';
-import GateManager from '../../../../app/utils/HardwareSimulator/GateManager';
+import Wire from '../../../../app/utils/HardwareSimulator/Gates/Wire';
+import Node from '../../../../app/utils/HardwareSimulator/Gates/Node';
+import GateManager from '../../../../app/utils/HardwareSimulator/Gates/GateManager';
 
 export const testTwoInputs = (testNode: Node, test: number) => {
   const input0Wire = new Wire();

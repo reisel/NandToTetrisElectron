@@ -2,7 +2,7 @@
 /**
  * Created by daniel on 5/21/17.
  */
-import Node from '../Node';
+import Node from '../Gates/Node';
 
 
 export default class Nand extends Node {

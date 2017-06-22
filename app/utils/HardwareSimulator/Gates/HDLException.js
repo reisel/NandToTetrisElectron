@@ -1,7 +1,7 @@
 /**
  * Created by daniel on 4/17/17.
  */
-import Exception from '../Exception';
+import Exception from '../../Exception';
 /** ******************************************************************************
  * The contents of this file are subject to the GNU General Public License      *
  * (GPL) Version 2 or later (the "License"); you may not use this file except   *

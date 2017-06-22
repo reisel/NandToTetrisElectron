@@ -1,7 +1,7 @@
 /**
  * Created by daniel on 4/17/17.
  */
-import HDLTokenizer from '../../../app/utils/HardwareSimulator/HDLTokenizer';
+import HDLTokenizer from '../../../app/utils/HardwareSimulator/Gates/HDLTokenizer';
 
 const sampleHdl = `
 // This file is part of the materials accompanying the book 

@@ -1,7 +1,7 @@
 /**
  * Created by daniel on 6/22/17.
  */
-import Gate from '../Gate';
+import Gate from '../Gates/Gate';
 /**
  * A BuiltIn Gate. The base class for all gates which are implemented in java.
  */

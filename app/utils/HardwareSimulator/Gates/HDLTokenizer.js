@@ -1,8 +1,8 @@
 /**
  * Created by daniel on 4/10/17.
  */
-import { loadFile } from '../Utils';
-import StreamTokenizer from '../StreamTokenizer';
+import { loadFile } from '../../Utils';
+import StreamTokenizer from '../../StreamTokenizer';
 import HDLException from './HDLException';
 /** ******************************************************************************
  * The contents of this file are subject to the GNU General Public License      *

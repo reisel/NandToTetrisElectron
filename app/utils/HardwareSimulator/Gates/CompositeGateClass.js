@@ -2,6 +2,8 @@
  * Created by daniel on 6/22/17.
  */
 
+import CompositeGate from "./CompositeGate";
+import DirtyGateAdapter from "./DirtyGateAdapter";
 /**
  * A GateClass for composite gates.
  */
@@ -250,141 +252,144 @@ static getSubBus(pinName) {
 // Both pin names may include sub bus specification.
 addConnection( input,  partNumber,  partName, fullLeftName,  fullRightName) {
 
-  GateClass partGateClass = (GateClass)partsList.elementAt(partNumber);
-  String leftName, rightName;
-  byte connectionType = 0;
+  const partGateClass = this.partsList[partNumber];
+  let leftName;
+  let rightName;
+  let connectionType = 0;
 
   // find left pin name (without sub bus specification)
-  int bracketsPos = fullLeftName.indexOf("[");
+  let bracketsPos = fullLeftName.indexOf("[");
   leftName = (bracketsPos >= 0 ? fullLeftName.substring(0, bracketsPos) : fullLeftName);
 
   // find left pin info. If doesn't exist - error.
-  byte leftType = partGateClass.getPinType(leftName);
-  if (leftType == UNKNOWN_PIN_TYPE)
+  let leftType = partGateClass.getPinType(leftName);
+  if (leftType === CompositeGateClass.UNKNOWN_PIN_TYPE) {
     input.HDLError(leftName + " is not a pin in " + partName);
-  int leftNumber = partGateClass.getPinNumber(leftName);
-  PinInfo leftPinInfo = partGateClass.getPinInfo(leftType, leftNumber);
-  byte[] leftSubBus = getSubBusAndCheck(input, fullLeftName, leftPinInfo.width);
-  byte leftWidth = (leftSubBus == null ? leftPinInfo.width :
-    (byte)(leftSubBus[1] - leftSubBus[0] + 1));
+  }
+  const leftNumber = partGateClass.getPinNumber(leftName);
+  const leftPinInfo = partGateClass.getPinInfo(leftType, leftNumber);
+  const leftSubBus = this.getSubBusAndCheck(input, fullLeftName, leftPinInfo.width);
+  const leftWidth = leftSubBus ? (leftSubBus[1] - leftSubBus[0] + 1) : leftPinInfo.width;
 
   // find right pin name (without sub bus specification)
   bracketsPos = fullRightName.indexOf("[");
   rightName = (bracketsPos >= 0 ? fullRightName.substring(0, bracketsPos) : fullRightName);
-  PinInfo rightPinInfo;
-  int rightNumber = 0;
-  byte rightType = GateClass.UNKNOWN_PIN_TYPE;
-  boolean selfFittingWidth = false;
+  let rightPinInfo;
+  let rightNumber = 0;
+  let rightType = GateClass.UNKNOWN_PIN_TYPE;
+  let selfFittingWidth = false;
 
   // check if special nodes
-  if (rightName.equals(CompositeGateClass.TRUE_NODE_INFO.name)) {
-    rightPinInfo = TRUE_NODE_INFO;
+  if (rightName === CompositeGateClass.TRUE_NODE_INFO.name) {
+    rightPinInfo = CompositeGateClass.TRUE_NODE_INFO;
     connectionType = Connection.FROM_TRUE;
     selfFittingWidth = true;
-  }
-  else if (rightName.equals(CompositeGateClass.FALSE_NODE_INFO.name)) {
-    rightPinInfo = FALSE_NODE_INFO;
+  } else if (rightName === CompositeGateClass.FALSE_NODE_INFO.name) {
+    rightPinInfo = CompositeGateClass.FALSE_NODE_INFO;
     connectionType = Connection.FROM_FALSE;
     selfFittingWidth = true;
-  }
-  else if (rightName.equals(CompositeGateClass.CLOCK_NODE_INFO.name)) {
-    rightPinInfo = CLOCK_NODE_INFO;
+  } else if (rightName === CompositeGateClass.CLOCK_NODE_INFO.name) {
+    rightPinInfo = CompositeGateClass.CLOCK_NODE_INFO;
     connectionType = Connection.FROM_CLOCK;
-  }
-  else {
-    rightType = getPinType(rightName);
+  } else {
+    rightType = this.getPinType(rightName);
 
     // check that not sub bus of intenral
-    if ((rightType == UNKNOWN_PIN_TYPE || rightType == INTERNAL_PIN_TYPE) &&
-      !fullRightName.equals(rightName))
+    if ((rightType === CompositeGateClass.UNKNOWN_PIN_TYPE || rightType === CompositeGateClass.INTERNAL_PIN_TYPE) &&
+      !fullRightName === rightName) {
       input.HDLError(fullRightName + ": sub bus of an internal node may not be used");
+    }
 
     // find right pin's info. If doesn't exist, create it as an internal pin.
-    if (rightType == UNKNOWN_PIN_TYPE) {
-      rightType = INTERNAL_PIN_TYPE;
+    if (rightType === CompositeGateClass.UNKNOWN_PIN_TYPE) {
+      rightType = CompositeGateClass.INTERNAL_PIN_TYPE;
       rightPinInfo = new PinInfo();
       rightPinInfo.name = rightName;
       rightPinInfo.width = leftWidth;
-      internalPinsInfo.addElement(rightPinInfo);
-      rightNumber = internalPinsInfo.size() - 1;
-      registerPin(rightPinInfo, INTERNAL_PIN_TYPE, rightNumber);
+      this.internalPinsInfo.push(rightPinInfo);
+      rightNumber = this.internalPinsInfo.length - 1;
+      this.registerPin(rightPinInfo, CompositeGateClass.INTERNAL_PIN_TYPE, rightNumber);
     }
     else {
-      rightNumber = getPinNumber(rightName);
-      rightPinInfo = getPinInfo(rightType, rightNumber);
+      rightNumber = this.getPinNumber(rightName);
+      rightPinInfo = this.getPinInfo(rightType, rightNumber);
     }
   }
 
-  byte[] rightSubBus;
-  int rightWidth;
+  let rightSubBus;
+  let rightWidth;
 
   if (selfFittingWidth) {
-    if(!rightName.equals(fullRightName))
+    if(rightName !== fullRightName) {
       input.HDLError(rightName + " may not be subscripted");
-
+    }
     rightWidth = leftWidth;
-    rightSubBus = new byte[]{0, (byte)(rightWidth - 1)};
+    rightSubBus = [0,rightWidth - 1];
   }
   else {
-    rightSubBus = getSubBusAndCheck(input, fullRightName, rightPinInfo.width);
-    rightWidth = (rightSubBus == null ? rightPinInfo.width :
-      rightSubBus[1] - rightSubBus[0] + 1);
+    rightSubBus = this.getSubBusAndCheck(input, fullRightName, rightPinInfo.width);
+    rightWidth = rightSubBus ? (rightSubBus[1] - rightSubBus[0] + 1) : rightPinInfo.width;
   }
 
   // check that right & left has the same width
-  if (leftWidth != rightWidth)
+  if (leftWidth !== rightWidth) {
     input.HDLError(leftName + "(" + leftWidth + ") and " + rightName + "(" + rightWidth +
       ") have different bus widths");
+  }
+
 
   // make sure that an internal pin is only fed once by a part's output pin
-  if ((rightType == INTERNAL_PIN_TYPE) && (leftType == OUTPUT_PIN_TYPE)) {
-    if (rightPinInfo.isInitialized(rightSubBus))
+  if ((rightType === CompositeGateClass.INTERNAL_PIN_TYPE) && (leftType === CompositeGateClass.OUTPUT_PIN_TYPE)) {
+    if (rightPinInfo.isInitialized(rightSubBus)) {
       input.HDLError("An internal pin may only be fed once by a part's output pin");
-    else
+    } else {
       rightPinInfo.initialize(rightSubBus);
+    }
   }
 
   // make sure that an output pin is only fed once by a part's output pin
-  if ((rightType == OUTPUT_PIN_TYPE) && (leftType == OUTPUT_PIN_TYPE)) {
-    if (rightPinInfo.isInitialized(rightSubBus))
+  if ((rightType === CompositeGateClass.OUTPUT_PIN_TYPE) && (leftType === CompositeGateClass.OUTPUT_PIN_TYPE)) {
+    if (rightPinInfo.isInitialized(rightSubBus)) {
       input.HDLError("An output pin may only be fed once by a part's output pin");
-    else
+    } else {
       rightPinInfo.initialize(rightSubBus);
+    }
   }
 
   // find connection type
   switch (leftType) {
 
-    case INPUT_PIN_TYPE:
+    case CompositeGateClass.INPUT_PIN_TYPE:
       switch (rightType) {
-        case INPUT_PIN_TYPE:
+        case CompositeGateClass.INPUT_PIN_TYPE:
           connectionType = Connection.FROM_INPUT;
           break;
-        case INTERNAL_PIN_TYPE:
+        case CompositeGateClass.INTERNAL_PIN_TYPE:
           connectionType = Connection.FROM_INTERNAL;
           break;
-        case OUTPUT_PIN_TYPE:
+        case CompositeGateClass.OUTPUT_PIN_TYPE:
           input.HDLError("Can't connect gate's output pin to part");
+          break;
       }
       break;
 
-    case OUTPUT_PIN_TYPE:
+    case CompositeGateClass.OUTPUT_PIN_TYPE:
       switch (rightType) {
-        case INPUT_PIN_TYPE:
+        case CompositeGateClass.INPUT_PIN_TYPE:
           input.HDLError("Can't connect part's output pin to gate's input pin");
-        case INTERNAL_PIN_TYPE:
+          break;
+        case CompositeGateClass.INTERNAL_PIN_TYPE:
           connectionType = Connection.TO_INTERNAL;
           break;
-        case OUTPUT_PIN_TYPE:
+        case CompositeGateClass.OUTPUT_PIN_TYPE:
           connectionType = Connection.TO_OUTPUT;
           break;
       }
       break;
   }
 
-  Connection connection = new Connection(connectionType, rightNumber, partNumber,
-    leftName, rightSubBus, leftSubBus);
-  connections.add(connection);
+  const connection = new Connection(connectionType, rightNumber, partNumber, leftName, rightSubBus, leftSubBus);
+  this.connections.add(connection);
 }
 
 /*
@@ -400,64 +405,69 @@ addConnection( input,  partNumber,  partName, fullLeftName,  fullRightName) {
  inputPinsInfo array.
  Edges are not created between inetrnal nodes and clocked part inputs.
  */
-private Graph createConnectionsGraph() {
-  Graph graph = new Graph();
-  Iterator connectionIter = connections.iterator();
-
-  while (connectionIter.hasNext()) {
-    Connection connection = (Connection)connectionIter.next();
-    Integer part = new Integer(connection.getPartNumber());
-    int gatePinNumber = connection.getGatePinNumber();
+createConnectionsGraph() {
+  const graph = new Graph();
+  const connectionIter = this.connections.values();
+  let connection = connectionIter.next().value;
+  while (connection) {
+    const part = connection.getPartNumber();
+    const gatePinNumber = connection.getGatePinNumber();
 
     switch (connection.getType()) {
       case Connection.TO_INTERNAL:
-        if (isLegalFromPartEdge(connection, part))
-          graph.addEdge(part, getPinInfo(INTERNAL_PIN_TYPE, gatePinNumber));
+        if (this.isLegalFromPartEdge(connection, part))
+          graph.addEdge(part, this.getPinInfo(CompositeGateClass.INTERNAL_PIN_TYPE, gatePinNumber));
         break;
 
       case Connection.FROM_INTERNAL:
-        if (isLegalToPartEdge(connection, part))
-          graph.addEdge(getPinInfo(INTERNAL_PIN_TYPE, gatePinNumber), part);
+        if (this.isLegalToPartEdge(connection, part))
+          graph.addEdge(this.getPinInfo(CompositeGateClass.INTERNAL_PIN_TYPE, gatePinNumber), part);
         break;
 
       case Connection.TO_OUTPUT:
-        if (isLegalFromPartEdge(connection, part))
-          graph.addEdge(part, getPinInfo(OUTPUT_PIN_TYPE, gatePinNumber));
+        if (this.isLegalFromPartEdge(connection, part))
+          graph.addEdge(part, this.getPinInfo(CompositeGateClass.OUTPUT_PIN_TYPE, gatePinNumber));
         break;
 
       case Connection.FROM_INPUT:
-        if (isLegalToPartEdge(connection, part))
-          graph.addEdge(getPinInfo(INPUT_PIN_TYPE, gatePinNumber), part);
+        if (this.isLegalToPartEdge(connection, part))
+          graph.addEdge(this.getPinInfo(CompositeGateClass.INPUT_PIN_TYPE, gatePinNumber), part);
         break;
 
       case Connection.FROM_TRUE:
-        if (isLegalToPartEdge(connection, part))
-          graph.addEdge(TRUE_NODE_INFO, part);
+        if (this.isLegalToPartEdge(connection, part))
+          graph.addEdge(CompositeGateClass.TRUE_NODE_INFO, part);
         break;
 
       case Connection.FROM_FALSE:
-        if (isLegalToPartEdge(connection, part))
-          graph.addEdge(FALSE_NODE_INFO, part);
+        if (this.isLegalToPartEdge(connection, part))
+          graph.addEdge(CompositeGateClass.FALSE_NODE_INFO, part);
         break;
 
       case Connection.FROM_CLOCK:
-        if (isLegalToPartEdge(connection, part))
-          graph.addEdge(CLOCK_NODE_INFO, part);
+        if (this.isLegalToPartEdge(connection, part))
+          graph.addEdge(CompositeGateClass.CLOCK_NODE_INFO, part);
         break;
     }
+    connection = connectionIter.next().value;
   }
 
   // connect the "master part" node to all the parts.
-  for (int i = 0; i < partsList.size(); i++)
-  graph.addEdge(partsList, new Integer(i));
+  for (let i = 0; i < this.partsList.length; i++){
+    graph.addEdge(this.partsList, i);
+  }
 
   // connect all output pins to the "master output" node
-  for (int i = 0; i < outputPinsInfo.length; i++)
-  graph.addEdge(outputPinsInfo[i], outputPinsInfo);
+  for (let i = 0; i < this.outputPinsInfo.length; i++) {
+    graph.addEdge(this.outputPinsInfo[i], this.outputPinsInfo);
+
+  }
 
   // connect the "master input" node to all input pins
-  for (int i = 0; i < inputPinsInfo.length; i++)
-  graph.addEdge(inputPinsInfo, inputPinsInfo[i]);
+  for (let i = 0; i < this.inputPinsInfo.length; i++) {
+    graph.addEdge(this.inputPinsInfo, this.inputPinsInfo[i]);
+
+  }
 
   return graph;
 }
@@ -465,18 +475,18 @@ private Graph createConnectionsGraph() {
 // Returns true if an edge should be connected to the given part.
 // a connection to a clocked input is not considered as a connection
 // in the graph.
-private boolean isLegalToPartEdge(Connection connection, Integer part) {
-  GateClass partGateClass = (GateClass)partsList.elementAt(part.intValue());
-  int partPinNumber = partGateClass.getPinNumber(connection.getPartPinName());
+isLegalToPartEdge( connection,  part) {
+  const partGateClass = this.partsList[part];
+  const partPinNumber = partGateClass.getPinNumber(connection.getPartPinName());
   return !partGateClass.isInputClocked[partPinNumber];
 }
 
 // Returns true if an edge should be connected from the given part.
 // a connection from a clocked output is not considered as a connection
 // in the graph.
-private boolean isLegalFromPartEdge(Connection connection, Integer part) {
-  GateClass partGateClass = (GateClass)partsList.elementAt(part.intValue());
-  int partPinNumber = partGateClass.getPinNumber(connection.getPartPinName());
+isLegalFromPartEdge( connection,  part) {
+  const partGateClass = this.partsList[part];
+  const partPinNumber = partGateClass.getPinNumber(connection.getPartPinName());
   return !partGateClass.isOutputClocked[partPinNumber];
 }
 
@@ -484,84 +494,83 @@ private boolean isLegalFromPartEdge(Connection connection, Integer part) {
  * Returns the PinInfo according to the given pin type and number.
  * If doesn't exist, return null.
  */
-public PinInfo getPinInfo(byte type, int number) {
-  PinInfo result = null;
+getPinInfo( type,  number) {
+  let result = null;
 
-  if (type == INTERNAL_PIN_TYPE) {
-    if (number < internalPinsInfo.size())
-      return (PinInfo)internalPinsInfo.elementAt(number);
-  }
-  else
+  if (type === CompositeGateClass.INTERNAL_PIN_TYPE) {
+    if (number < this.internalPinsInfo.length) {
+      return this.internalPinsInfo[number];
+    }
+  } else {
     result = super.getPinInfo(type, number);
-
+  }
   return result;
 }
 
 /**
  * Creates and returns a new instance of CompositeGate.
  */
-public Gate newInstance() throws InstantiationException {
-  Node[] inputNodes = new Node[inputPinsInfo.length];
-  Node[] outputNodes = new Node[outputPinsInfo.length];
-  Node[] internalNodes = new Node[internalPinsInfo.size()];
+newInstance() {
+  const inputNodes = new Array(this.inputPinsInfo.length);
+  const outputNodes = new Array(this.outputPinsInfo.length);
+  const internalNodes = new Array(this.internalPinsInfo.length);
 
-  CompositeGate result = new CompositeGate();
+  const result = new CompositeGate();
 
   // Create instances (Gates) from all parts in the parts list (which are GateClasses).
   // The created array is sorted in the original parts order
-  Gate[] parts = new Gate[partsList.size()];
-  for (int i = 0; i < parts.length; i++) {
-    parts[i] = ((GateClass)partsList.elementAt(i)).newInstance();
-    if (parts[i] instanceof BuiltInGateWithGUI) // save the parent of gates with gui
-      ((BuiltInGateWithGUI)parts[i]).setParent(result);
-  }
+  const parts = this.partsList.map(part => part.newInstance());
 
   // Creates another parts array in which the parts are sorted in topological order.
-  Gate[] sortedParts = new Gate[parts.length];
-  for (int i = 0; i < parts.length; i++)
-  sortedParts[i] = parts[partsOrder[i]];
-
-  for (int i = 0; i < inputNodes.length; i++)
-  inputNodes[i] = new Node();
-
-  for (int i = 0; i < outputNodes.length; i++)
-  outputNodes[i] = new Node();
+  const sortedParts = new Array(parts.length);
+  for (let i = 0; i < parts.length; i++) {
+    sortedParts[i] = parts[this.partsOrder[i]];
+  }
+  for (let i = 0; i < inputNodes.length; i++) {
+    inputNodes[i] = new Node();
+  }
+  for (let i = 0; i < outputNodes.length; i++) {
+    outputNodes[i] = new Node();
+  }
 
   // Add a DirtyGateAdapter as a listener to all the non-clocked inputs,
   // so the gate will become dirty when one of its non-clocked input changes.
-  Node adapter = new DirtyGateAdapter(result);
-  for (int i = 0; i < isInputClocked.length; i++)
-  if (!isInputClocked[i])
+  const adapter = new DirtyGateAdapter(result);
+  for (let i = 0; i < this.isInputClocked.length; i++)
+  if (!this.isInputClocked[i]) {
     inputNodes[i].addListener(adapter);
+  }
 
   // First scan: creates internal Nodes (or SubNodes) and their connections to
   // their source part nodes. Also creates the connections between gate's
   // input or putput nodes and part's input nodes and between part's output nodes and gate's
   // output nodes.
-  ConnectionSet internalConnections = new ConnectionSet();
-  Node partNode, source, target;
-  byte[] gateSubBus, partSubBus;
-  Iterator connectionIter = connections.iterator();
-  while (connectionIter.hasNext()) {
-    Connection connection = (Connection)connectionIter.next();
+  internalConnections = new Set();
+  let partNode;
+  let source;
+  let target;
+  let gateSubBus;
+  let partSubBus;
+
+  const connectionIter = this.connections.values();
+  connection = connectionIter.next().value;
+  while (connection) {
     gateSubBus = connection.getGateSubBus();
     partSubBus = connection.getPartSubBus();
     partNode = parts[connection.getPartNumber()].getNode(connection.getPartPinName());
 
     switch (connection.getType()) {
       case Connection.FROM_INPUT:
-        connectGateToPart(inputNodes[connection.getGatePinNumber()], gateSubBus,
-          partNode, partSubBus);
+        this.connectGateToPart(inputNodes[connection.getGatePinNumber()], gateSubBus, partNode, partSubBus);
         break;
 
       case Connection.TO_OUTPUT:
-        connectGateToPart(partNode, partSubBus,
-          outputNodes[connection.getGatePinNumber()], gateSubBus);
+        this.connectGateToPart(partNode, partSubBus, outputNodes[connection.getGatePinNumber()], gateSubBus);
         break;
 
       case Connection.TO_INTERNAL:
         target = null;
-        if (partSubBus == null)
+        if (!partSubBus)
           target = new Node();
         else
           target = new SubNode(partSubBus[0], partSubBus[1]);
@@ -576,6 +585,7 @@ public Gate newInstance() throws InstantiationException {
         internalConnections.add(connection);
         break;
     }
+    connection = connectionIter.next();
   }
 
   // Second scan: Creates the connections between internal nodes or true node
