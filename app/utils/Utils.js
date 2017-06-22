@@ -25,3 +25,9 @@ String.prototype.hashCode = () => {
   return hash;
 };
 
+export function pad(n, width, z) {
+  z = z || '0';
+  n += '';
+  if (width >= n.length) return n;
+  return n.length >= width ? n : new Array((width - n.length) + 1).join(z) + n;
+}
