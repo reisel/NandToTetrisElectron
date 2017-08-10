@@ -31,7 +31,7 @@ describe('(StreamTokenizer)', () => {
   let parser;
 
   beforeEach(() => {
-    parser = new StreamTokenizer(Array.from(sampleHdl));
+    parser = new StreamTokenizer(`${__dirname}/HardwareSimulator/assets/Mux8Way16.hdl`);
     parser.parseNumbers();
     parser.slashSlashComments(true);
     parser.slashStarComments(true);

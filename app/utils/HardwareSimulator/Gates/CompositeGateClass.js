@@ -80,7 +80,7 @@ export default class CompositeGateClass extends GateClass {
     this.partsOrder = (new Array(this.partsList.size)).fill(0);
     let counter = 0;
     for (let i = 0; i < topologicalOrder.length; i++) {
-      if (topologicalOrder[i] instanceof 'number') {
+      if (typeof topologicalOrder[i] === 'number') {
         this.partsOrder[counter++] = topologicalOrder[i];
       }
     }
@@ -117,7 +117,7 @@ export default class CompositeGateClass extends GateClass {
         }
 
         const partName = input.getIdentifier();
-        const gateClass = this.getGateClass(partName, false);
+        const gateClass = GateClass.getGateClass(partName, false);
         this.partsList.push(gateClass);
         this.isClocked = this.isClocked || gateClass.isClocked;
         const partNumber = this.partsList.length - 1;

@@ -6,7 +6,9 @@ import Node from '../Gates/Node';
 
 
 export default class Nand extends Node {
-  compute() {
-        this.setOutput(0, ~(this.inputs(0) & this.inputs(1)));
+  reCompute() {
+    const a = this.inputPins[0].get();
+    const b = this.inputPins[1].get();
+    this.outputPins[0].set((0x1 - (a & b)) & 0xffff);
   }
 }

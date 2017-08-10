@@ -188,7 +188,8 @@ export default class Tokenizer {
       let v = 0;
       let decexp = 0;
       let seendot = 0;
-      while (true) {
+      const running = true;
+      while (running) {
         if (c === '.'.charCodeAt(0) && seendot === 0) {
           seendot = 1;
         } else if (c >= '0'.charCodeAt(0) && c <= '9'.charCodeAt(0)) {

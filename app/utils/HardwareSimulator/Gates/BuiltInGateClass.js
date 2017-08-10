@@ -5,14 +5,12 @@
 import DirtyGateAdapter from './DirtyGateAdapter';
 import GateClass from './GateCalss';
 import HDLTokenizer from './HDLTokenizer';
+import * as GatesClasses from '../BuiltInGates';
+import Node from './Node';
 
-const req = require.context('./BuiltInGates');
-
-const jsClasses = req.keys().reduce((acc, key) => {
-  const fileName = key.replace('.js', '');
-  acc[fileName] = req(key);
-  return acc;
-}, {});
+const jsClasses = {
+  ...GatesClasses
+};
 
 export default class BuiltInGateClass extends GateClass {
 

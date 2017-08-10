@@ -38,10 +38,10 @@ export default class PinInfo {
     let from;
     let  to;
 
-    if (subBus) {
+    if (subBus && subBus !== null) {
       from = subBus[0];
       to = subBus[1];
-    }    else {
+    } else {
       from = 0;
       to = (this.width - 1);
     }
@@ -53,7 +53,10 @@ export default class PinInfo {
    * Checks whether the given sub bus is marked as initialized.
    * If subBus is null, all the pin is checked.
    */
-  isInitialized = (subBus = [0, this.width - 1]) => subBus.slice(subBus[0], subBus[0] + 1).every(a => !a);
+  isInitialized = subBus => {
+    if (!subBus || subBus === null) subBus = [0, this.width - 1];
+    return !!this.initialized.slice(subBus[0], subBus[0] + 1).find(a => a);
+  };
 
   hashCode() {
     return this.name.hashCode();

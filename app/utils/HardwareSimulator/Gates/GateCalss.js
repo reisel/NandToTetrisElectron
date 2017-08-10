@@ -4,7 +4,7 @@
 import HDLException from './HDLException';
 import PinInfo from './PinInfo';
 import HDLTokenizer from './HDLTokenizer';
-import BuiltInGateClass from "./BuiltInGateClass";
+import GatesManager from './GatesManager';
 
 const fs = require('fs');
 const path = require('path');
@@ -92,7 +92,7 @@ export default class GateClass {
   // gate wasn't found in cache
     if (!result) {
       const input = new HDLTokenizer(fileName);
-      result = this.readHDL(input, gateName);
+      result = GateClass.readHDL(input, gateName);
       this.GateClasses[fileName] = result;
     }
 
@@ -118,26 +118,31 @@ export default class GateClass {
   static readHDL(input, gateName) {
   // read CHIP keyword
     input.advance();
-    if (!(input.getTokenType() === HDLTokenizer.TYPE_KEYWORD
-    && input.getKeywordType() === HDLTokenizer.KW_CHIP))    { input.HDLError("Missing 'CHIP' keyword"); }
+    if (!(input.getTokenType() === HDLTokenizer.TYPE_KEYWORD && input.getKeywordType() === HDLTokenizer.KW_CHIP)) {
+      input.HDLError("Missing 'CHIP' keyword");
+    }
 
   // read gate name
     input.advance();
-    if (input.getTokenType() !== HDLTokenizer.TYPE_IDENTIFIER)    { input.HDLError('Missing chip name'); }
+    if (input.getTokenType() !== HDLTokenizer.TYPE_IDENTIFIER) {
+      input.HDLError('Missing chip name');
+    }
     const foundGateName = input.getIdentifier();
-    if (!gateName === foundGateName)    { input.HDLError("Chip name doesn't match the HDL name"); }
+    if (!gateName === foundGateName) {
+      input.HDLError("Chip name doesn't match the HDL name");
+    }
 
   // read '{' symbol
     input.advance();
-    if (!(input.getTokenType() === HDLTokenizer.TYPE_SYMBOL
-    && input.getSymbol() === '{'))    { input.HDLError("Missing '{'"); }
+    if (!(input.getTokenType() === HDLTokenizer.TYPE_SYMBOL && input.getSymbol() === '{')) {
+      input.HDLError("Missing '{'");
+    }
 
   // read IN keyword
-    let inputPinsInfo,
-      outputPinsInfo;
+    let inputPinsInfo;
+    let  outputPinsInfo;
     input.advance();
-    if (input.getTokenType() === HDLTokenizer.TYPE_KEYWORD
-    && input.getKeywordType() === HDLTokenizer.KW_IN) {
+    if (input.getTokenType() === HDLTokenizer.TYPE_KEYWORD && input.getKeywordType() === HDLTokenizer.KW_IN) {
     // read input pins list
       inputPinsInfo = this.getPinsInfo(input, this.readPinNames(input));
       input.advance();
@@ -148,8 +153,7 @@ export default class GateClass {
 
 
   // read OUT keyword
-    if (input.getTokenType() === HDLTokenizer.TYPE_KEYWORD
-    && input.getKeywordType() === HDLTokenizer.KW_OUT) {
+    if (input.getTokenType() === HDLTokenizer.TYPE_KEYWORD && input.getKeywordType() === HDLTokenizer.KW_OUT) {
     // read output pins list
       outputPinsInfo = this.getPinsInfo(input, this.readPinNames(input));
       input.advance();
@@ -161,9 +165,9 @@ export default class GateClass {
 
   // read BuiltIn/Parts keyword
     if (input.getTokenType() === HDLTokenizer.TYPE_KEYWORD && input.getKeywordType() === HDLTokenizer.KW_BUILTIN) {
-      result = new BuiltInGateClass(gateName, input, inputPinsInfo, outputPinsInfo);
+      result = new (require('./BuiltInGateClass'))(gateName, input, inputPinsInfo, outputPinsInfo);
     } else if (input.getTokenType() === HDLTokenizer.TYPE_KEYWORD && input.getKeywordType() === HDLTokenizer.KW_PARTS) {
-      result = new CompositeGateClass(gateName, input, inputPinsInfo, outputPinsInfo);
+      result = new (require('./CompositeGateClass'))(gateName, input, inputPinsInfo, outputPinsInfo);
     }  else {
       input.HDLError('Keyword expected');
     }
@@ -290,7 +294,7 @@ export default class GateClass {
  */
   getPinNumber(pinName) {
     const result = this.namesToNumbers[pinName];
-    return (result ||  -1);
+    return result !== undefined ? result : -1;
   }
 
 /**

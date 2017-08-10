@@ -1,28 +1,31 @@
-// @flow
 /**
  * Created by daniel on 4/17/17.
  */
-import { And } from '../../../../app/utils/HardwareSimulator/Gates/index';
-import { testTwoInputs } from './Gates';
+import GatesManager from '../../../../app/utils/HardwareSimulator/Gates/GatesManager';
+import HDLTokenizer from '../../../../app/utils/HardwareSimulator/Gates/HDLTokenizer';
+import GateClass from '../../../../app/utils/HardwareSimulator/Gates/GateCalss';
 
 describe('And', () => {
-  let testNode;
-  beforeEach(() => testNode = new And());
-  it('0', () => {
-    const value = testTwoInputs(testNode, 0);
-    expect(value).toEqual(0);
+  let instance;
+  beforeAll(() => {
+    const gm = GatesManager.getInstance();
+    gm.setBuiltInDir('/Users/daniel/Projects/Nand2TetrisElectron/resources/builtInChips');
+    gm.setWorkingDir('/Users/daniel/Projects/Nand2TetrisElectron/resources');
+    const input = new HDLTokenizer(`${__dirname}/../assets/And.hdl`);
+    const result = GateClass.readHDL(input, 'And');
+    instance = result;
+  })
+  it('input Pins Name', () => {
+    expect(instance.inputPinsInfo.map(o => o.name)).toEqual(['a', 'b']);
   });
-  it('1', () => {
-    const value = testTwoInputs(testNode, 1);
-    expect(value).toEqual(0);
+  it('input Pins widths', () => {
+    expect(instance.inputPinsInfo.map(o => o.width)).toEqual([1, 1]);
   });
-  it('2', () => {
-    const value = testTwoInputs(testNode, 2);
-    expect(value).toEqual(0);
+  it('names to numbers', () => {
+    expect(instance.namesToNumbers).toEqual({ a: 0, b: 1, nandout: 0, out: 0 });
   });
-  it('3', () => {
-    const value = testTwoInputs(testNode, 3);
-    expect(value).toEqual(1);
+  it('names to types', () => {
+    expect(instance.namesToTypes).toEqual({ a: 1, b: 1, nandout: 3, out: 2 });
   });
 });
 
